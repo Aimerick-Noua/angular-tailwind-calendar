@@ -1,1 +1,629 @@
 <app-calendar/>
+  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8 px-4">
+  <div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-10">
+      <div
+        class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full mb-4"
+      >
+        <i class="fas fa-file-contract text-white text-2xl"></i>
+      </div>
+      <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-3">
+        Titularisation Après Essai
+      </h1>
+      <p class="text-gray-600 text-lg">
+        Formulaire de confirmation de titularisation suite à une période d'essai
+        réussie
+      </p>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="glass-card rounded-2xl p-6 mb-8 shadow-lg">
+      <div class="mb-4">
+        <div class="flex justify-between text-sm text-gray-600 mb-2">
+          <span>Étape {{ currentStep }} sur {{ totalSteps }}</span>
+          <span>{{ progressPercentage | number : "1.0-0" }}%</span>
+        </div>
+        <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div
+            class="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-500"
+            [style.width]="progressPercentage + '%'"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Step Indicators -->
+      <div class="flex justify-between mt-6">
+        <button
+          (click)="goToStep(1)"
+          [class]="currentStep >= 1 ? 'step-active' : 'step-inactive'"
+        >
+          <div
+            [class]="
+              currentStep >= 1 ? 'step-circle-active' : 'step-circle-inactive'
+            "
+          >
+            <span *ngIf="currentStep > 1">✓</span>
+            <span *ngIf="currentStep <= 1">1</span>
+          </div>
+          <span class="step-label">Informations</span>
+        </button>
+
+        <div class="flex-1 h-px bg-gray-300 mt-5 mx-4"></div>
+
+        <button
+          (click)="goToStep(2)"
+          [disabled]="currentStep < 2"
+          [class]="currentStep >= 2 ? 'step-active' : 'step-inactive'"
+        >
+          <div
+            [class]="
+              currentStep >= 2 ? 'step-circle-active' : 'step-circle-inactive'
+            "
+          >
+            <span *ngIf="currentStep > 2">✓</span>
+            <span *ngIf="currentStep <= 2">2</span>
+          </div>
+          <span class="step-label">Contrat</span>
+        </button>
+
+        <div class="flex-1 h-px bg-gray-300 mt-5 mx-4"></div>
+
+        <button
+          (click)="goToStep(3)"
+          [disabled]="currentStep < 3"
+          [class]="currentStep >= 3 ? 'step-active' : 'step-inactive'"
+        >
+          <div
+            [class]="
+              currentStep >= 3 ? 'step-circle-active' : 'step-circle-inactive'
+            "
+          >
+            3
+          </div>
+          <span class="step-label">Validation</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Form Steps -->
+    <form [formGroup]="titularizationForm" (ngSubmit)="generateLetter()">
+      <!-- Step 1: Employee Information -->
+      <div class="form-step" *ngIf="currentStep === 1">
+        <div class="glass-card rounded-2xl p-6 md:p-8 shadow-lg mb-6">
+          <h2 class="text-2xl font-bold text-gray-800 mb-2 flex items-center">
+            <i class="fas fa-user-circle text-purple-600 mr-3"></i>
+            Informations de l'Employé
+          </h2>
+          <p class="text-gray-600 mb-6">
+            Renseignez les informations personnelles et professionnelles
+          </p>
+
+          <div class="grid md:grid-cols-2 gap-6">
+            <!-- Matricule -->
+            <div>
+              <label class="form-label">
+                <i class="fas fa-id-card mr-2"></i>
+                Matricule *
+              </label>
+              <div class="relative">
+                <input
+                  type="text"
+                  formControlName="matricule"
+                  class="form-input"
+                  [class.border-red-500]="isFieldInvalid('matricule')"
+                  placeholder="Ex: EMP12345"
+                />
+                <button
+                  type="button"
+                  (click)="generateMatricule()"
+                  class="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-600 hover:text-blue-800"
+                >
+                  <i class="fas fa-dice"></i>
+                </button>
+              </div>
+              <div
+                *ngIf="isFieldInvalid('matricule')"
+                class="text-red-500 text-sm mt-1"
+              >
+                Matricule requis (6-10 caractères alphanumériques)
+              </div>
+            </div>
+
+            <!-- Civilité -->
+            <div>
+              <label class="form-label">
+                <i class="fas fa-user mr-2"></i>
+                Civilité *
+              </label>
+              <div class="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  *ngFor="let option of civiliteOptions"
+                  [class]="
+                    titularizationForm.get('civilite')?.value === option.value
+                      ? 'gender-btn-active'
+                      : 'gender-btn-inactive'
+                  "
+                  (click)="
+                    titularizationForm.patchValue({ civilite: option.value })
+                  "
+                >
+                  <i
+                    class="fas fa-{{ option.icon }} mr-2"
+                    [class.text-blue-500]="option.value === 'monsieur'"
+                    [class.text-pink-500]="option.value === 'madame'"
+                  ></i>
+                  {{ option.label }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nom et Prénoms -->
+          <div class="grid md:grid-cols-2 gap-6 mt-6">
+            <div>
+              <label class="form-label">
+                <i class="fas fa-signature mr-2"></i>
+                Nom *
+              </label>
+              <input
+                type="text"
+                formControlName="nom"
+                class="form-input"
+                [class.border-red-500]="isFieldInvalid('nom')"
+                placeholder="Entrez le nom de famille"
+              />
+              <div
+                *ngIf="isFieldInvalid('nom')"
+                class="text-red-500 text-sm mt-1"
+              >
+                Nom requis (minimum 2 caractères)
+              </div>
+            </div>
+
+            <div>
+              <label class="form-label">
+                <i class="fas fa-user-tag mr-2"></i>
+                Prénoms *
+              </label>
+              <input
+                type="text"
+                formControlName="prenoms"
+                class="form-input"
+                [class.border-red-500]="isFieldInvalid('prenoms')"
+                placeholder="Entrez les prénoms"
+              />
+              <div
+                *ngIf="isFieldInvalid('prenoms')"
+                class="text-red-500 text-sm mt-1"
+              >
+                Prénoms requis (minimum 2 caractères)
+              </div>
+            </div>
+          </div>
+
+          <!-- Fonction et Direction -->
+          <div class="grid md:grid-cols-2 gap-6 mt-6">
+            <div>
+              <label class="form-label">
+                <i class="fas fa-briefcase mr-2"></i>
+                Fonction *
+              </label>
+              <select
+                formControlName="fonction"
+                class="form-input"
+                [class.border-red-500]="isFieldInvalid('fonction')"
+              >
+                <option value="">Sélectionnez une fonction</option>
+                <option *ngFor="let func of functionOptions" [value]="func">
+                  {{ func }}
+                </option>
+              </select>
+              <div
+                *ngIf="isFieldInvalid('fonction')"
+                class="text-red-500 text-sm mt-1"
+              >
+                Fonction requise
+              </div>
+            </div>
+
+            <div>
+              <label class="form-label">
+                <i class="fas fa-building mr-2"></i>
+                Direction *
+              </label>
+              <select
+                formControlName="direction"
+                class="form-input"
+                [class.border-red-500]="isFieldInvalid('direction')"
+              >
+                <option value="">Sélectionnez une direction</option>
+                <option *ngFor="let dir of directionOptions" [value]="dir">
+                  {{ dir }}
+                </option>
+              </select>
+              <div
+                *ngIf="isFieldInvalid('direction')"
+                class="text-red-500 text-sm mt-1"
+              >
+                Direction requise
+              </div>
+            </div>
+          </div>
+
+          <!-- Site et Référence -->
+          <div class="grid md:grid-cols-2 gap-6 mt-6">
+            <div>
+              <label class="form-label">
+                <i class="fas fa-map-marker-alt mr-2"></i>
+                Site *
+              </label>
+              <select
+                formControlName="site"
+                class="form-input"
+                [class.border-red-500]="isFieldInvalid('site')"
+              >
+                <option value="">Sélectionnez un site</option>
+                <option *ngFor="let site of siteOptions" [value]="site">
+                  {{ site }}
+                </option>
+              </select>
+              <div
+                *ngIf="isFieldInvalid('site')"
+                class="text-red-500 text-sm mt-1"
+              >
+                Site requis
+              </div>
+            </div>
+
+            <div>
+              <label class="form-label">
+                <i class="fas fa-file-alt mr-2"></i>
+                Référence
+              </label>
+              <input
+                type="text"
+                formControlName="reference"
+                class="form-input"
+                placeholder="Réf. du document (optionnel)"
+              />
+            </div>
+          </div>
+
+          <!-- Date du Jour -->
+          <div class="mt-6">
+            <label class="form-label">
+              <i class="fas fa-calendar-alt mr-2"></i>
+              Date du Jour *
+            </label>
+            <input
+              type="date"
+              formControlName="dateDuJour"
+              class="form-input"
+              [class.border-red-500]="isFieldInvalid('dateDuJour')"
+            />
+            <div
+              *ngIf="isFieldInvalid('dateDuJour')"
+              class="text-red-500 text-sm mt-1"
+            >
+              Date requise
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 1 Navigation -->
+        <div class="flex justify-end">
+          <button
+            type="button"
+            (click)="nextStep()"
+            [disabled]="!validateCurrentStep()"
+            class="btn-primary"
+          >
+            Suivant
+            <i class="fas fa-arrow-right ml-2"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Contract Details -->
+      <div class="form-step" *ngIf="currentStep === 2">
+        <div class="glass-card rounded-2xl p-6 md:p-8 shadow-lg mb-6">
+          <h2 class="text-2xl font-bold text-gray-800 mb-2 flex items-center">
+            <i class="fas fa-file-contract text-purple-600 mr-3"></i>
+            Détails de la Titularisation
+          </h2>
+          <p class="text-gray-600 mb-6">
+            Confirmez les conditions de titularisation
+          </p>
+
+          <!-- Dates Section -->
+          <div
+            class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-6"
+          >
+            <h3 class="font-bold text-gray-800 mb-4 flex items-center">
+              <i class="fas fa-calendar-check text-blue-600 mr-3"></i>
+              Dates Importantes
+            </h3>
+
+            <div class="grid md:grid-cols-3 gap-6">
+              <div>
+                <label class="form-label">Date de Début d'Essai *</label>
+                <input
+                  type="date"
+                  formControlName="dateDebutEssai"
+                  class="form-input"
+                  [class.border-red-500]="isFieldInvalid('dateDebutEssai')"
+                />
+              </div>
+
+              <div>
+                <label class="form-label">Date de Fin d'Essai *</label>
+                <input
+                  type="date"
+                  formControlName="dateFinEssai"
+                  class="form-input"
+                  [class.border-red-500]="isFieldInvalid('dateFinEssai')"
+                />
+              </div>
+
+              <div>
+                <label class="form-label">Date de Titularisation *</label>
+                <div class="relative">
+                  <input
+                    type="date"
+                    formControlName="dateTitularisation"
+                    class="form-input border-2 border-purple-300"
+                    [class.border-red-500]="
+                      isFieldInvalid('dateTitularisation')
+                    "
+                  />
+                  <i
+                    class="fas fa-star text-yellow-500 absolute right-3 top-1/2 transform -translate-y-1/2"
+                  ></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Conditions Section -->
+          <div class="glass-card rounded-xl p-6 mb-6">
+            <h3 class="font-bold text-gray-800 mb-4 flex items-center">
+              <i class="fas fa-clipboard-check text-green-600 mr-3"></i>
+              Conditions de Titularisation
+            </h3>
+
+            <div class="space-y-4">
+              <div class="flex items-start">
+                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                <span class="text-gray-700">
+                  La période d'essai a été jugée
+                  <span class="font-bold text-green-600">satisfaisante</span>
+                </span>
+              </div>
+
+              <div class="flex items-start">
+                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                <span class="text-gray-700">
+                  Le poste de titularisation est identique au poste d'essai
+                </span>
+              </div>
+
+              <div class="flex items-start">
+                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                <span class="text-gray-700">
+                  Situation salariale et catégorielle restent inchangées
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes Additionnelles -->
+          <div>
+            <label class="form-label">
+              <i class="fas fa-sticky-note mr-2"></i>
+              Notes Additionnelles
+            </label>
+            <textarea
+              rows="4"
+              formControlName="notesAdditionnelles"
+              class="form-input"
+              placeholder="Ajoutez des commentaires ou précisions supplémentaires..."
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Step 2 Navigation -->
+        <div class="flex justify-between">
+          <button type="button" (click)="prevStep()" class="btn-secondary">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Retour
+          </button>
+
+          <button
+            type="button"
+            (click)="nextStep()"
+            [disabled]="!validateCurrentStep()"
+            class="btn-primary"
+          >
+            Vérifier & Valider
+            <i class="fas fa-check-circle ml-2"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 3: Validation -->
+      <div class="form-step" *ngIf="currentStep === 3">
+        <div class="glass-card rounded-2xl p-6 md:p-8 shadow-lg mb-6">
+          <h2 class="text-2xl font-bold text-gray-800 mb-2 flex items-center">
+            <i class="fas fa-eye text-purple-600 mr-3"></i>
+            Validation Finale
+          </h2>
+          <p class="text-gray-600 mb-6">
+            Vérifiez les informations avant génération de la lettre
+          </p>
+
+          <!-- Summary Card -->
+          <div
+            class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 mb-8"
+          >
+            <div class="text-center mb-6">
+              <div
+                class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mb-4"
+              >
+                <i class="fas fa-check text-white text-2xl"></i>
+              </div>
+              <h3 class="text-xl font-bold text-gray-800">Récapitulatif</h3>
+              <p class="text-gray-600">
+                Toutes les informations sont complètes
+              </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4">
+              <div class="bg-white p-4 rounded-lg">
+                <div class="text-sm text-gray-500">Employé</div>
+                <div class="font-semibold text-gray-800">
+                  {{
+                    titularizationForm.get("civilite")?.value === "monsieur"
+                      ? "M."
+                      : "Mme"
+                  }}
+                  {{ titularizationForm.get("nom")?.value }}
+                  {{ titularizationForm.get("prenoms")?.value }}
+                </div>
+              </div>
+
+              <div class="bg-white p-4 rounded-lg">
+                <div class="text-sm text-gray-500">Matricule</div>
+                <div class="font-semibold text-gray-800">
+                  {{ titularizationForm.get("matricule")?.value }}
+                </div>
+              </div>
+
+              <div class="bg-white p-4 rounded-lg">
+                <div class="text-sm text-gray-500">Poste</div>
+                <div class="font-semibold text-gray-800">
+                  {{ titularizationForm.get("fonction")?.value }}
+                </div>
+              </div>
+
+              <div class="bg-white p-4 rounded-lg">
+                <div class="text-sm text-gray-500">Date Titularisation</div>
+                <div class="font-semibold text-gray-800">
+                  {{
+                    titularizationForm.get("dateTitularisation")?.value
+                      | date : "dd/MM/yyyy"
+                  }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Options -->
+          <div class="mb-6">
+            <h4 class="font-bold text-gray-800 mb-4 flex items-center">
+              <i class="fas fa-cog text-gray-600 mr-3"></i>
+              Options de Génération
+            </h4>
+
+            <div class="space-y-4">
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  id="generatePDF"
+                  formControlName="generatePDF"
+                  class="mr-3 h-5 w-5 text-blue-600 rounded"
+                />
+                <label for="generatePDF" class="text-gray-700 cursor-pointer">
+                  Générer le document PDF
+                </label>
+              </div>
+
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  id="sendEmail"
+                  formControlName="sendEmail"
+                  class="mr-3 h-5 w-5 text-blue-600 rounded"
+                />
+                <label for="sendEmail" class="text-gray-700 cursor-pointer">
+                  Envoyer par email
+                </label>
+              </div>
+
+              <div
+                *ngIf="titularizationForm.get('sendEmail')?.value"
+                class="ml-8"
+              >
+                <label class="form-label">Adresse Email</label>
+                <input
+                  type="email"
+                  formControlName="emailAddress"
+                  class="form-input"
+                  placeholder="email@exemple.com"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="grid md:grid-cols-3 gap-4 mb-6">
+            <button
+              type="button"
+              (click)="previewLetter()"
+              class="quick-action-btn"
+            >
+              <i class="fas fa-eye text-blue-600 text-2xl mb-2"></i>
+              <span class="font-medium">Prévisualiser</span>
+            </button>
+
+            <button
+              type="button"
+              (click)="downloadPDF()"
+              class="quick-action-btn"
+            >
+              <i class="fas fa-file-pdf text-red-600 text-2xl mb-2"></i>
+              <span class="font-medium">Télécharger PDF</span>
+            </button>
+
+            <button type="button" class="quick-action-btn">
+              <i class="fas fa-print text-gray-600 text-2xl mb-2"></i>
+              <span class="font-medium">Imprimer</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3 Navigation -->
+        <div class="flex justify-between">
+          <div class="space-x-4">
+            <button type="button" (click)="prevStep()" class="btn-secondary">
+              <i class="fas fa-edit mr-2"></i>
+              Modifier
+            </button>
+
+            <button type="button" (click)="resetForm()" class="btn-danger">
+              <i class="fas fa-trash-alt mr-2"></i>
+              Réinitialiser
+            </button>
+          </div>
+
+          <div class="space-x-4">
+            <button type="button" class="btn-outline">
+              Enregistrer Brouillon
+            </button>
+
+            <button
+              type="submit"
+              [disabled]="isSubmitting || !titularizationForm.valid"
+              class="btn-success"
+            >
+              <i class="fas fa-check-circle mr-2"></i>
+              <span *ngIf="isSubmitting">Génération en cours...</span>
+              <span *ngIf="!isSubmitting">Valider & Générer</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
